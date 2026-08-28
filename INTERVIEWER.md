@@ -1,8 +1,8 @@
-# Interviewer run-sheet — Cardboard senior exercise
+# Interviewer run-sheet — Cardboard senior panel
 
-Internal. This is the script for running the session live. The candidate drives the
-thinking; you drive the screen. Goal: see how they understand unfamiliar code, find
-their way around, communicate, and scope work. Building things is not the point.
+Internal. The live script for a ~90-minute full-stack panel with two or three
+interviewers. The candidate directs the thinking; the lead drives the screen.
+Goal: see how they think across the stack. They do not build anything.
 
 ---
 
@@ -14,135 +14,119 @@ docker compose up            # wait for web + api to come up
 ```
 
 - App: <http://localhost:3000>  ·  API: <http://localhost:4000/api>
-- Keep a terminal open tailing the API logs — you'll want this for Activity 1:
-  ```bash
-  docker compose logs -f api
-  ```
-- Reset to a clean state any time (between candidates, or if things get messy):
-  ```bash
-  docker compose exec api npm run seed
-  # or, full clean slate:
-  docker compose down -v && docker compose up
-  ```
-- A background **simulator** keeps firing the webhook (~every 10s), so there's always live
-  traffic in the logs to watch — you don't have to fire anything by hand. Pause it any time
-  with `docker compose stop simulator` (e.g. to quiet the logs for Activity 2 or 3), and
-  bring it back with `docker compose start simulator`.
-- Using AI (ChatGPT, Copilot, etc.) is welcome and realistic. When they lean on it,
-  ask them to explain and defend what it gave them — that's the signal.
+- Keep a terminal tailing the API logs: `docker compose logs -f api`
+- Reset to a clean state (between candidates): `docker compose exec api npm run seed`
+- The **simulator** fires the webhook every ~10s so the logs are always live. Pause it
+  with `docker compose stop simulator` when you want quiet; resume with `start`.
+- **Scale data for Station 2:** `docker compose exec -e SEED_TICKETS=5000 api npm run seed`
+  makes the board take a couple of seconds (the N+1, felt). Reset with the plain seed.
+- Using AI is welcome — ask them to explain and defend what it gives them.
 
-## The app in 20 seconds (so you can follow along)
+## Panel roles (adjust to the room)
 
-Cardboard is a small issue tracker — epics, tickets, a board, comments — plus a Docs
-wiki. Stack: Node + Express + MongoDB/Mongoose on the API, React + TypeScript on the
-web. There is also one small integration flow: an **inbound webhook provisions a user
-and sends a (mock SES) welcome email**. That flow is what Activity 1 traces.
+| Owner | Runs |
+| --- | --- |
+| Lead (Chris) | Intro, Station 1, wrap |
+| Backend (Perry) | Stations 2 (data) and 3 (API) |
+| Frontend (Holly) | Station 4 (UI), or observes and the lead covers it |
+| Whoever's strongest on infra | Station 5 (AWS), as a group chat |
+| Observers (Kamna, + Holly if observing) | Watch, score, join the debrief |
 
----
+## Timing
 
-## Activity 1 — Explore and explain (10–15 min)
-
-**Prompt:** "Take a few minutes to look around the app and the code. How do you get your
-bearings in a codebase you've never seen? Walk me through how it's put together."
-
-Then the integration trace:
-
-**Prompt:** "There's an inbound webhook that provisions a user. Walk me through what
-happens end to end when it fires — what handles it, and where would you put a breakpoint?"
-
-The webhook is **already firing on its own** — the simulator sends a fresh event every
-~10 seconds — so the logs are always moving. Have the candidate pick one and trace it.
-Each event shares a single correlation id, so a chain is easy to follow:
-
-```
-[webhook] (wh_xxx) received user-provisioned from hr-system
-[users]   (wh_xxx) provisioning user ada@example.com
-[mailer]  (wh_xxx) sending email to ada@example.com via SES (mock): "Welcome to Cardboard"
-[users]   (wh_xxx) provisioned user ada@example.com (<id>)
-[webhook] (wh_xxx) done
-```
-
-Want one clean event to point at (or to show the security check)? Fire one yourself:
-
-```bash
-curl -X POST http://localhost:4000/api/webhooks/user-provisioned \
-  -H 'x-webhook-secret: dev-secret' -H 'content-type: application/json' \
-  -d '{"email":"ada@example.com","name":"Ada Lovelace","source":"hr-system"}'
-```
-
-See the results:
-
-```bash
-curl -s localhost:4000/api/users  | jq   # the new user
-curl -s localhost:4000/api/outbox | jq   # the "sent" welcome email
-```
-
-**Answer key (so you can follow or nudge):**
-- Entry point: `api/src/controllers/webhookController.ts` → `handleUserProvisioned`.
-  It checks the `x-webhook-secret` header, then calls…
-- `api/src/services/userService.ts` → `provisionUser`. Creates the user, then calls…
-- `api/src/services/mailer.ts` → `sendWelcomeEmail`. This is the SES stand-in; it records
-  the message in the outbox instead of really sending.
-- Show the security check: run the same curl with `-H 'x-webhook-secret: wrong'` → **401**.
-
-**Strong:** orients from the outside in (runs it, follows a request through the layers),
-names the layers, traces webhook → service → mailer, notices the secret check, says where
-they'd breakpoint (e.g. `provisionUser` to inspect the payload) and how they'd follow the
-correlation id through the logs. **Weak:** opens files at random, can't connect the webhook
-to the email, hand-waves the flow.
+| Time | Station |
+| --- | --- |
+| 0:00–05 | Intro & tone |
+| 0:05–25 | 1. Orient + trace the webhook (understanding + API) |
+| 0:25–40 | 2. Data & Mongo |
+| 0:40–55 | 3. API design |
+| 0:55–1:10 | 4. UI |
+| 1:10–20 | 5. AWS & infra (discussion) |
+| 1:20–30 | Wrap, candidate Qs, panel debrief |
 
 ---
 
-## Activity 2 — Plan a feature and write the ticket (20 min) — the main event
+## Station 1 — Orient + trace (Lead)
 
-**Prompt:** "We want to notify people when work lands on them: when a ticket is assigned to
-someone, email them. Have a look at how you'd build it, then write it up as a ticket in
-Cardboard — a description, acceptance criteria, and dev notes for whoever picks it up. You
-don't need to build it."
+> "Look around the app and the code — how do you get your bearings? Then: a webhook is
+> provisioning users every few seconds (see the logs). Walk me through what happens end
+> to end when one fires, and where would you put a breakpoint?"
 
-They create the ticket in the app: **Board → New ticket** (there are description and
-acceptance-criteria fields; dev notes can go in the description or a comment).
+The chain (one correlation id): `webhookController.handleUserProvisioned` (checks
+`x-webhook-secret`) → `userService.provisionUser` → `mailer.sendWelcomeEmail` (mock SES)
+→ outbox. Results: `curl -s localhost:4000/api/outbox | jq`. Bad secret → 401.
 
-**What good dev notes surface (answer key):**
-- Assignment happens in `api/src/controllers/ticketController.ts` → `patchTicket` (a PATCH
-  that can set `assignee`).
-- Sending reuses `mailer.sendEmail` — the same SES stand-in they just traced.
-- **The gotcha to look for:** `assignee` is a free-text **name**, not linked to a user with
-  an email. So "email the assignee" needs a way to turn a name into an email address, which
-  the data model doesn't support cleanly today. A strong candidate calls this out.
-- Edge cases: fire only when the assignee actually changes (not on every edit); what about
-  unassignment; what if the person has no email on file.
-- Acceptance criteria written as outcomes ("given/when/then"), not implementation steps.
+**Strong:** orients outside-in, traces across layers, spots the secret check, names a breakpoint.
 
-**Strong:** gathers the real facts from the code, spots the name-vs-email gap, scopes a
-sensible first slice, writes crisp outcome-based ACs. **Weak:** a vague ticket that restates
-the title, misses the data-model gap, or plans to build everything at once.
+## Station 2 — Data & Mongo (Backend)
 
-_Alternative feature if you'd rather:_ "fire an outbound webhook to an external URL when a
-ticket is created."
+> **Integrity:** "Epic progress is wrong — Onboarding revamp shows more done than the
+> board has, and moving/deleting tickets doesn't fix it. What's going on, how would you fix it?"
+
+Answer: progress is cached on `Epic.stats`, only the create path updates it → drift.
+Fix: derive on read, or maintain the cache on every mutation in one place.
+
+> **Scale:** load `SEED_TICKETS=5000`, open the board (now ~2.5s). "Why is it slow?"
+
+Answer: N+1 in `getBoard` (an epic query per ticket) + no indexes + no pagination.
+Fix: `$in` / `$lookup`, add indexes, paginate. Reset with the plain seed after.
+
+> **Modeling (optional):** "Anything in the schema you'd change?" → `assignee` is a name,
+> not a ref to a user; should epic progress be stored at all.
+
+**Strong:** connects the slow board to the query pattern; spots the assignee modeling gap.
+
+## Station 3 — API design (Backend)
+
+> **Design:** "We want to email a user when a ticket's assigned to them. Design the
+> endpoint: shape, validation, error handling, status codes, and how you'd stop double-sends."
+>
+> **Critique:** "Look at `ticketController.postTicket` — what would you change?"
+
+Answer key: fat controller, inconsistent with the epic service (issue 3); only validates
+title, trusts client input (issue 7); count-based key races (issue 8); no pagination (5).
+The webhook returns 202 but isn't idempotent — ask how they'd dedupe retries.
+
+**Strong:** talks validation, idempotency, error handling unprompted; thin controller + service.
+
+## Station 4 — UI (Frontend)
+
+> **Trace:** "How does a ticket get from the API to the screen, and what happens when you
+> change its status on the board?"
+>
+> **Extend/critique:** "How would you add a 'my tickets' filter? Anything in the front end you'd change?"
+
+Answer key: pages fetch via the axios client; a status change PATCHes then refetches. The
+tell: the epic percent in the sidebar is computed in the component, not the server (issue 7);
+statuses are duplicated FE/BE (issue 4). App is accessibility-first — a sharp candidate notices.
+
+**Strong:** traces the data flow, knows where logic belongs, scopes a change sensibly.
+
+## Station 5 — AWS & infra (group, high-level discussion)
+
+> "The mailer is a mock and the webhook comes from a simulator. In production, how would you
+> actually build and run this — where it runs, reliable webhook delivery, email at scale,
+> secrets, and knowing it's healthy?"
+
+Listening for: containers (ECS/Fargate) or Lambda + API Gateway; signature verification +
+idempotency + a queue (SQS) and DLQ + retries; real SES with bounce/complaint handling;
+Secrets Manager / SSM; structured logs (the correlation id), metrics, tracing, alarms;
+managed Mongo (Atlas/DocumentDB) + backups + indexes.
+
+**Strong:** reaches for queues, idempotency, and managed services and weighs tradeoffs.
+
+## Close (~5–10 min)
+
+> "What would you do next? Anything you'd cut? Questions for us?"
+
+Observers and panel debrief after the candidate leaves.
 
 ---
 
-## Activity 3 — Diagnose a bug and write the fix ticket (10–15 min, optional)
+## Your scorecard
 
-**Prompt:** "Epic progress looks wrong — 'Onboarding revamp' says it's further along than
-the board shows, and moving or deleting tickets doesn't update it. Find the cause and write
-a ticket to fix it. You don't have to fix it, just scope it."
-
-**Answer key:** epic progress is cached in `Epic.stats` and only the *create* path updates
-it (`api/src/controllers/ticketController.ts`). Status changes, moving a ticket to another
-epic, and deletes never adjust it, so it drifts. The seeded "Onboarding revamp" epic already
-shows it. Ideal fix: derive progress on read (an aggregate/count), or maintain the cache on
-every mutation through a single place. **Strong:** diagnoses the real root cause and writes a
-ticket that scopes the actual fix, not just "make the number right."
-
----
-
-## What you're scoring
-
-Understanding code · exploring and finding things · communication (the write-ups) ·
-judgment and scoping. Not whether they build anything. There is no pass mark — use it to
-structure your written feedback.
+Understanding code · data/DB · API design · front end · infra knowledge · communication &
+judgment (incl. whether they check their AI). Score 1–4 each; no pass mark.
 
 ## Quick reference
 
@@ -150,8 +134,8 @@ structure your written feedback.
 | --- | --- |
 | Start | `docker compose up` |
 | App / API / logs | `localhost:3000` · `localhost:4000/api` · `docker compose logs -f api` |
-| Pause / resume auto-traffic | `docker compose stop simulator` · `docker compose start simulator` |
 | Reset data | `docker compose exec api npm run seed` |
-| Fire one webhook by hand | the `curl` in Activity 1 |
-| Bad secret (should 401) | same curl with `-H 'x-webhook-secret: wrong'` |
+| Scale data (Station 2) | `docker compose exec -e SEED_TICKETS=5000 api npm run seed` |
+| Pause / resume traffic | `docker compose stop simulator` · `docker compose start simulator` |
+| Fire one webhook by hand | `curl -X POST localhost:4000/api/webhooks/user-provisioned -H 'x-webhook-secret: dev-secret' -H 'content-type: application/json' -d '{"email":"a@example.com","name":"Ada","source":"hr"}'` |
 | See users / outbox | `curl -s localhost:4000/api/users \| jq` · `curl -s localhost:4000/api/outbox \| jq` |

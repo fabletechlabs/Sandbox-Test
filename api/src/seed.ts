@@ -142,8 +142,30 @@ async function seed(): Promise<void> {
   await User.insertMany(users);
   await Email.insertMany(emails);
 
+  // Optional bulk tickets, for the "make it slow at scale" data station.
+  // Turn on with SEED_TICKETS=<n> (e.g. SEED_TICKETS=5000). Off by default so
+  // the curated board and the drift breadcrumb stay clean.
+  const extraCount = Number(process.env.SEED_TICKETS) || 0;
+  if (extraCount > 0) {
+    const statuses = ['backlog', 'todo', 'in_progress', 'in_review', 'done'];
+    const types = ['story', 'bug', 'task'];
+    const epicIds = epicDocs.map((e) => e._id);
+    const bulk = Array.from({ length: extraCount }, (_, i) => ({
+      key: `CARD-${100000 + i}`, // high offset so generated keys never collide
+      title: `Backlog item ${i + 1}`,
+      type: types[i % types.length],
+      status: statuses[i % statuses.length],
+      estimate: (i % 8) + 1,
+      epicId: i % 4 === 0 ? null : epicIds[i % epicIds.length],
+      assignee: '',
+      order: i,
+    }));
+    await Ticket.insertMany(bulk);
+  }
+
   console.log(
-    `[seed] inserted ${members.length} members, ${epics.length} epics, ${tickets.length} tickets, ${comments.length} comments, ${docs.length} docs, ${users.length} users, ${emails.length} emails`
+    `[seed] inserted ${members.length} members, ${epics.length} epics, ${tickets.length} tickets` +
+      `${extraCount ? ` (+${extraCount} bulk)` : ''}, ${comments.length} comments, ${docs.length} docs, ${users.length} users, ${emails.length} emails`
   );
 }
 
