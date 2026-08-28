@@ -1,0 +1,65 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/cardboard
+      - PORT=4000
+      # Set SEED=reset (e.g. `SEED=reset docker compose up`) to wipe and reseed.
+      - SEED=${SEED:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      # The browser (on the host) calls the API, so this is the host-published URL.
+      - VITE_API_URL=http://localhost:4000/api
+    depends_on:
+      - api
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+
+  # Fires the inbound webhook on an interval so there's always a live flow to
+  # watch and trace. Pause it any time with: docker compose stop simulator
+  simulator:
+    build: ./api
+    restart: unless-stopped
+    command: npm run simulate
+    environment:
+      - WEBHOOK_URL=http://api:4000/api/webhooks/user-provisioned
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-dev-secret}
+      - SIMULATE_INTERVAL=${SIMULATE_INTERVAL:-10000}
+      - SIMULATE_BAD_SECRET_RATE=${SIMULATE_BAD_SECRET_RATE:-0}
+    depends_on:
+      - api
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+
+volumes:
+  mongo-data:
