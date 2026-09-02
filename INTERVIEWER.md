@@ -22,15 +22,9 @@ docker compose up            # wait for web + api to come up
   makes the board take a couple of seconds (the N+1, felt). Reset with the plain seed.
 - Using AI is welcome — ask them to explain and defend what it gives them.
 
-## Panel roles (adjust to the room)
+## Who's in the room
 
-| Owner | Runs |
-| --- | --- |
-| Lead (Chris) | Intro, Station 1, wrap |
-| Backend (Perry) | Stations 2 (data) and 3 (API) |
-| Frontend (Holly) | Station 4 (UI), or observes and the lead covers it |
-| Whoever's strongest on infra | Station 5 (AWS), as a group chat |
-| Observers (Kamna, + Holly if observing) | Watch, score, join the debrief |
+You drive the whole session; other interviewers and observers chime in as they like.
 
 ## Timing
 
@@ -46,7 +40,7 @@ docker compose up            # wait for web + api to come up
 
 ---
 
-## Station 1 — Orient + trace (Lead)
+## Station 1 — Orient + trace
 
 > "Look around the app and the code — how do you get your bearings? Then: a webhook is
 > provisioning users every few seconds (see the logs). Walk me through what happens end
@@ -58,7 +52,7 @@ The chain (one correlation id): `webhookController.handleUserProvisioned` (check
 
 **Strong:** orients outside-in, traces across layers, spots the secret check, names a breakpoint.
 
-## Station 2 — Data & Mongo (Backend)
+## Station 2 — Data & Mongo
 
 > **Integrity:** "Epic progress is wrong — Onboarding revamp shows more done than the
 > board has, and moving/deleting tickets doesn't fix it. What's going on, how would you fix it?"
@@ -76,7 +70,7 @@ Fix: `$in` / `$lookup`, add indexes, paginate. Reset with the plain seed after.
 
 **Strong:** connects the slow board to the query pattern; spots the assignee modeling gap.
 
-## Station 3 — API design (Backend)
+## Station 3 — API design
 
 > **Design:** "We want to email a user when a ticket's assigned to them. Design the
 > endpoint: shape, validation, error handling, status codes, and how you'd stop double-sends."
@@ -89,7 +83,7 @@ The webhook returns 202 but isn't idempotent — ask how they'd dedupe retries.
 
 **Strong:** talks validation, idempotency, error handling unprompted; thin controller + service.
 
-## Station 4 — UI (Frontend)
+## Station 4 — UI
 
 > **Trace:** "How does a ticket get from the API to the screen, and what happens when you
 > change its status on the board?"
@@ -102,7 +96,7 @@ statuses are duplicated FE/BE (issue 4). App is accessibility-first — a sharp 
 
 **Strong:** traces the data flow, knows where logic belongs, scopes a change sensibly.
 
-## Station 5 — AWS & infra (group, high-level discussion)
+## Station 5 — AWS & infra (high-level discussion)
 
 > "The mailer is a mock and the webhook comes from a simulator. In production, how would you
 > actually build and run this — where it runs, reliable webhook delivery, email at scale,
