@@ -1,17 +1,24 @@
 {
   "name": "Cardboard",
 
-  // No "image" and no "features" on purpose.
+  // Name the image. Do not leave it out.
   //
-  // This uses the default Codespaces image, which already carries Docker, the
-  // GitHub CLI and an SSH server. The previous technical exercise ran on the
-  // same default image with no features, so the arrangement is proven.
+  // With no image, `gh codespace create` still works, because Codespaces
+  // supplies its own default. A rebuild does not: it falls back to the
+  // devcontainer default, which is Alpine and carries no Docker. Anyone who
+  // selects "Rebuild Container" then gets a container that cannot run the app.
   //
-  // Do not add the docker-in-docker feature to get Docker. The default image
-  // has a yarn apt source whose signing key no longer verifies, the feature
-  // runs `apt-get update` while it installs, and the install then fails with
-  // "NO_PUBKEY 62D54FD4003F6525". Container creation fails, but the codespace
-  // still reports Available on a fallback container, so the breakage is quiet.
+  // This image carries Docker, the GitHub CLI and an SSH server.
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+
+  // Declare no features. The docker-in-docker feature looks like the way to
+  // get Docker, but this image already has it, and adding any feature forces
+  // a local build of the whole image. That build runs `apt-get update`, the
+  // image has a yarn apt source whose signing key no longer verifies, and the
+  // install stops with "NO_PUBKEY 62D54FD4003F6525". Container creation then
+  // fails, while the codespace still reports Available on a fallback
+  // container, so the breakage is quiet. The same build also costs about
+  // eight minutes, because it pulls the image instead of using the cached one.
 
   // Four containers plus Mongo. Two cores make the board timings in the data
   // station unreliable, which is the one measurement the exercise depends on.
