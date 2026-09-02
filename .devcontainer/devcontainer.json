@@ -35,8 +35,12 @@
     }
   },
 
-  // Build on create so the first start is quick. Start on every attach and
-  // resume; `up -d` is safe to run again.
-  "postCreateCommand": "docker compose build",
+  // Build the images with onCreateCommand, not postCreateCommand. A prebuild
+  // runs onCreateCommand and updateContentCommand, but it skips
+  // postCreateCommand. Only onCreateCommand puts the built images into the
+  // prebuild, which is where almost all of the first-start time goes.
+  "onCreateCommand": "docker compose build",
+
+  // Start on every attach and resume; `up -d` is safe to run again.
   "postStartCommand": "docker compose up -d"
 }
