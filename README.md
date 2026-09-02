@@ -11,6 +11,22 @@ normal codebase: run it, read it, and extend it.
 
 ## Run it (one command)
 
+### In GitHub Codespaces
+
+Select **Code → Create codespace on main**. The codespace builds the images when
+it is created and starts them when it attaches, so there is nothing to install.
+
+When port 3000 comes up, VS Code shows a notification. Select **Open in
+Browser**, or open the **Ports** panel and select the globe icon on port 3000.
+Use a real browser tab rather than the built-in preview pane, because the
+exercise needs the browser developer tools.
+
+The web app calls `/api` on its own address, and the dev server sends those
+calls to the API container. Only the web port must be open. Port 4000 is
+forwarded as well, so `curl` against the API works from the codespace terminal.
+
+### On your own machine
+
 You only need Docker.
 
 ```bash

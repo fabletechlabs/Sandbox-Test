@@ -1,0 +1,37 @@
+{
+  "name": "Cardboard",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+
+  // The app itself runs as four containers through docker compose, so the dev
+  // container only needs a Docker daemon to drive them.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  // Four containers plus Mongo. Two cores make the board timings in the data
+  // station unreliable, which is the one measurement the exercise depends on.
+  "hostRequirements": {
+    "cpus": 4
+  },
+
+  "forwardPorts": [3000, 4000, 27017],
+  "portsAttributes": {
+    "3000": {
+      "label": "Cardboard web",
+      "onAutoForward": "notify"
+    },
+    "4000": {
+      "label": "Cardboard API",
+      "onAutoForward": "silent"
+    },
+    "27017": {
+      "label": "MongoDB",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Build on create so the first start is quick. Start on every attach and
+  // resume; `up -d` is safe to run again.
+  "postCreateCommand": "docker compose build",
+  "postStartCommand": "docker compose up -d"
+}

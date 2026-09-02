@@ -11,7 +11,11 @@ import type {
   TicketDetailResponse,
 } from '../types';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+// Same-origin by default: the Vite dev server proxies /api to the API
+// container (see vite.config.ts). This keeps the browser on one origin, which
+// is what makes the app work unchanged in GitHub Codespaces, where only the
+// forwarded web port is reachable.
+const baseURL = import.meta.env.VITE_API_URL || '/api';
 
 export const apiClient = axios.create({ baseURL });
 

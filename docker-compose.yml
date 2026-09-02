@@ -36,8 +36,12 @@ services:
     ports:
       - '3000:3000'
     environment:
-      # The browser (on the host) calls the API, so this is the host-published URL.
-      - VITE_API_URL=http://localhost:4000/api
+      # The browser calls /api on the web origin and Vite proxies it to the API
+      # container. One origin keeps the app working in GitHub Codespaces, where
+      # only the forwarded web port is reachable from the browser.
+      - VITE_PROXY_TARGET=http://api:4000
+      # Set by Codespaces. Vite uses it to point the HMR websocket at port 443.
+      - CODESPACES=${CODESPACES:-}
     depends_on:
       - api
     volumes:

@@ -13,6 +13,11 @@ cd issue-tracker
 docker compose up            # wait for web + api to come up
 ```
 
+In a codespace the containers start on their own. Open the **Ports** panel and
+select the globe icon on port 3000. Every command below works unchanged in the
+codespace terminal; only the addresses differ. Read the API address from the
+Ports panel, or use `localhost:4000` from inside the terminal.
+
 - App: <http://localhost:3000>  ·  API: <http://localhost:4000/api>
 - Keep a terminal tailing the API logs: `docker compose logs -f api`
 - Reset to a clean state (between candidates): `docker compose exec api npm run seed`
