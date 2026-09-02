@@ -1,16 +1,17 @@
 {
   "name": "Cardboard",
 
-  // The default Codespaces image. It carries an SSH server, the GitHub CLI and
-  // Node, which a smaller image such as javascript-node does not. Without the
-  // SSH server, `gh codespace ssh` and `gh codespace logs` both fail.
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-
-  // The app itself runs as four containers through docker compose, so the dev
-  // container only needs a Docker daemon to drive them.
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
+  // No "image" and no "features" on purpose.
+  //
+  // This uses the default Codespaces image, which already carries Docker, the
+  // GitHub CLI and an SSH server. The previous technical exercise ran on the
+  // same default image with no features, so the arrangement is proven.
+  //
+  // Do not add the docker-in-docker feature to get Docker. The default image
+  // has a yarn apt source whose signing key no longer verifies, the feature
+  // runs `apt-get update` while it installs, and the install then fails with
+  // "NO_PUBKEY 62D54FD4003F6525". Container creation fails, but the codespace
+  // still reports Available on a fallback container, so the breakage is quiet.
 
   // Four containers plus Mongo. Two cores make the board timings in the data
   // station unreliable, which is the one measurement the exercise depends on.
