@@ -18,6 +18,17 @@ select the globe icon on port 3000. Every command below works unchanged in the
 codespace terminal; only the addresses differ. Read the API address from the
 Ports panel, or use `localhost:4000` from inside the terminal.
 
+**Create the codespace before the call, not during it.** A codespace that is
+built for the first time pulls the images and then builds the containers, which
+takes about ten minutes. Turn on prebuilds for this repository to remove that
+wait, or open the codespace well before the candidate joins. The Ports panel is
+empty until the four containers answer; `docker compose ps` tells you when they
+do. Note that a codespace reports **Available** while this work is still in
+progress, so that word alone does not mean the app is ready.
+
+Leave the ports **private**. The web app calls the API on its own address, so
+nothing must be made public.
+
 - App: <http://localhost:3000>  ·  API: <http://localhost:4000/api>
 - Keep a terminal tailing the API logs: `docker compose logs -f api`
 - Reset to a clean state (between candidates): `docker compose exec api npm run seed`
