@@ -35,11 +35,15 @@
     }
   },
 
-  // Build the images with onCreateCommand, not postCreateCommand. A prebuild
+  // Get every image with onCreateCommand, not postCreateCommand. A prebuild
   // runs onCreateCommand and updateContentCommand, but it skips
-  // postCreateCommand. Only onCreateCommand puts the built images into the
-  // prebuild, which is where almost all of the first-start time goes.
-  "onCreateCommand": "docker compose build",
+  // postCreateCommand. Only onCreateCommand puts the images into the prebuild.
+  //
+  // Both halves are necessary. `build` makes the api, web and simulator
+  // images, but it does not pull mongo, because that service names an image
+  // instead of a build context. Without the pull, mongo is fetched later, when
+  // the containers start.
+  "onCreateCommand": "docker compose pull --ignore-buildable && docker compose build",
 
   // Start on every attach and resume; `up -d` is safe to run again.
   "postStartCommand": "docker compose up -d"

@@ -18,13 +18,15 @@ select the globe icon on port 3000. Every command below works unchanged in the
 codespace terminal; only the addresses differ. Read the API address from the
 Ports panel, or use `localhost:4000` from inside the terminal.
 
-**Create the codespace before the call, not during it.** A codespace that is
-built for the first time pulls the images and then builds the containers, which
-takes about ten minutes. Turn on prebuilds for this repository to remove that
-wait, or open the codespace well before the candidate joins. The Ports panel is
-empty until the four containers answer; `docker compose ps` tells you when they
-do. Note that a codespace reports **Available** while this work is still in
-progress, so that word alone does not mean the app is ready.
+**Give the codespace about three minutes before you need it.** A new codespace
+builds the images and then starts the four containers. Measured on a four-core
+machine, all four answer about three minutes after you select Create. Make it
+before the candidate joins, not while they watch.
+
+Two things look like failure and are not. The Ports panel stays empty until the
+containers answer, and a codespace reports **Available** while the build is
+still running, so that word alone does not mean the app is ready. Use
+`docker compose ps` to see the truth.
 
 Leave the ports **private**. The web app calls the API on its own address, so
 nothing must be made public.
