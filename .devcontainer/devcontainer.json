@@ -49,10 +49,7 @@
   "postStartCommand": "docker compose up -d",
 
   // Show that the app is coming up. Without this the workspace looks empty
-  // for about a minute while the containers start, which reads as a broken
-  // environment. The command also leaves the API log on the screen, which is
-  // the terminal the run-sheet asks the interviewer to keep open. `up -d`
-  // repeats here on purpose, so the log tail cannot start before there is a
-  // container to follow.
-  "postAttachCommand": "docker compose up -d && docker compose logs -f api"
+  // for about forty seconds while the containers start, which reads as a
+  // broken environment. See the comments in the script.
+  "postAttachCommand": "bash .devcontainer/attach.sh"
 }
