@@ -18,10 +18,12 @@ select the globe icon on port 3000. Every command below works unchanged in the
 codespace terminal; only the addresses differ. Read the API address from the
 Ports panel, or use `localhost:4000` from inside the terminal.
 
-**Give the codespace about three minutes before you need it.** A new codespace
-builds the images and then starts the four containers. Measured on a four-core
-machine, all four answer about three minutes after you select Create. Make it
-before the candidate joins, not while they watch.
+**Give the codespace about five minutes before you need it.** A new codespace
+pulls its base image, installs Docker, and then builds and starts the four
+containers. Measured on a four-core machine, all four answer about five
+minutes after you select Create. Make it before the candidate joins, not
+while they watch. A rebuild is not this slow — Docker's layers stay on the
+same machine, so `docker compose` starts again in well under a minute.
 
 Two things look like failure and are not. The Ports panel stays empty until the
 containers answer, and a codespace reports **Available** while the build is

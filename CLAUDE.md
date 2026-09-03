@@ -73,6 +73,18 @@ all three are necessary:
 Do not reintroduce an absolute `VITE_API_URL` that points at `localhost`. In a
 codespace, `localhost` is the browser's own machine, not the container.
 
+`.devcontainer/devcontainer.json` names its base image
+(`javascript-node:1-20-bookworm`) and adds Docker and SSH as features. Do not
+remove the `image` line: without one, `create` still works, because Codespaces
+supplies its own default, but `Rebuild Container` does not — it falls back to
+Alpine, which has no Docker, and the codespace still reports itself healthy.
+Do not switch the image to `universal`, either: Docker installs on it, but
+`universal` is large enough that a first create measured about ten minutes,
+against about five for `javascript-node`. And do not add `docker-in-docker` to
+`universal` if a future edit brings it back — that combination fails outright,
+because `universal` carries a yarn apt source whose signing key no longer
+verifies.
+
 Each folder is also a standalone Node project, and needs a local MongoDB:
 
 ```bash
