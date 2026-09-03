@@ -20,6 +20,9 @@ docker compose up            # wait for web + api to come up
   with `docker compose stop simulator` when you want quiet; resume with `start`.
 - **Scale data for Station 2:** `docker compose exec -e SEED_TICKETS=5000 api npm run seed`
   makes the board take a couple of seconds (the N+1, felt). Reset with the plain seed.
+- **Station 5 (Lambda):** have `lambda/src/webhookHandler.ts` open in an editor tab ahead of
+  time. It's not built or run by `docker compose` — nothing to start, just open the file when
+  you get there.
 - Using AI is welcome — ask them to explain and defend what it gives them.
 
 ## Who's in the room
@@ -52,7 +55,23 @@ The chain (one correlation id): `webhookController.handleUserProvisioned` (check
 
 **Strong:** orients outside-in, traces across layers, spots the secret check, names a breakpoint.
 
+<<<<<<< HEAD
 ## Station 2 — Data & Mongo
+=======
+> **Follow-up (idempotency):** "Say the HR system times out waiting for our response and
+> retries with the exact same payload. Trace it again — what happens?"
+
+Answer: nothing stops it. `handleUserProvisioned` → `provisionUser` calls `User.create`
+unconditionally every time; there's no unique index on `User.email` and no idempotency
+key, so a retry creates a second user and sends a second welcome email. Ask how they'd fix
+it — a client-supplied idempotency key, a unique index + upsert, or a dedupe table keyed
+on correlation id.
+
+**Strong:** finds the duplicate-provisioning gap without being told it's there, connects it
+to the missing unique index.
+
+## Station 2 — Data & Mongo (Backend)
+>>>>>>> 2af3c4d (Lambda added)
 
 > **Integrity:** "Epic progress is wrong — Onboarding revamp shows more done than the
 > board has, and moving/deleting tickets doesn't fix it. What's going on, how would you fix it?"
@@ -79,9 +98,21 @@ Fix: `$in` / `$lookup`, add indexes, paginate. Reset with the plain seed after.
 
 Answer key: fat controller, inconsistent with the epic service (issue 3); only validates
 title, trusts client input (issue 7); count-based key races (issue 8); no pagination (5).
-The webhook returns 202 but isn't idempotent — ask how they'd dedupe retries.
+The webhook returns 202 but isn't idempotent — ask how they'd dedupe retries (this echoes
+Station 1's follow-up — a candidate who found the gap while tracing should design the fix here).
 
-**Strong:** talks validation, idempotency, error handling unprompted; thin controller + service.
+> **Edge cases:** "What should happen if `email` is present but malformed, or the request
+> body isn't valid JSON at all? Where's the line between a 400 and a 500 here, and what
+> would you actually validate with?"
+
+Answer: today a falsy check is the only validation (`webhookController`, `postTicket`) —
+a malformed email string sails through to Mongoose, and a bad JSON body would throw before
+any handler code runs, landing in the generic 500 in `app.ts`'s central error handler rather
+than a clean 400. Listening for: a schema validation library (zod/joi) at the boundary,
+a consistent error envelope, and distinguishing client (4xx) from server (5xx) failures.
+
+**Strong:** talks validation, idempotency, error handling unprompted; thin controller + service;
+separates client-caused failures from server-caused ones without prompting.
 
 ## Station 4 — UI
 
@@ -107,7 +138,21 @@ idempotency + a queue (SQS) and DLQ + retries; real SES with bounce/complaint ha
 Secrets Manager / SSM; structured logs (the correlation id), metrics, tracing, alarms;
 managed Mongo (Atlas/DocumentDB) + backups + indexes.
 
-**Strong:** reaches for queues, idempotency, and managed services and weighs tradeoffs.
+> **Concrete (Lambda):** open `lambda/src/webhookHandler.ts` — a serverless port of the same
+> webhook behind API Gateway. "What's wrong with running it this way?"
+
+Answer key: `mongoose.connect` is called on every invocation with no connection reuse across
+warm starts — under load this either exhausts Mongo's connection limit or, without the
+container's connection being cached at module scope, adds a full handshake to every
+invocation's latency; `JSON.parse(event.body)` is unguarded, so a malformed body throws
+before any validation runs and API Gateway hands the caller a raw 502 instead of a clean 400;
+it's invoked directly by API Gateway with no queue in front of it, so there's nothing to
+absorb retries or a slow write — which, combined with the same missing idempotency as the
+Express version, makes duplicate provisioning more likely here, not less.
+
+**Strong:** reaches for queues, idempotency, and managed services and weighs tradeoffs;
+given the Lambda file, ties the abstract answer to the actual code (connection reuse,
+unguarded parsing) instead of generic "use Lambda" hand-waving.
 
 ## Close (~5–10 min)
 
@@ -133,3 +178,4 @@ judgment (incl. whether they check their AI). Score 1–4 each; no pass mark.
 | Pause / resume traffic | `docker compose stop simulator` · `docker compose start simulator` |
 | Fire one webhook by hand | `curl -X POST localhost:4000/api/webhooks/user-provisioned -H 'x-webhook-secret: dev-secret' -H 'content-type: application/json' -d '{"email":"a@example.com","name":"Ada","source":"hr"}'` |
 | See users / outbox | `curl -s localhost:4000/api/users \| jq` · `curl -s localhost:4000/api/outbox \| jq` |
+| Lambda file for Station 5 | `lambda/src/webhookHandler.ts` (read-only — not run by docker compose) |

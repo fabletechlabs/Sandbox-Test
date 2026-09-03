@@ -62,13 +62,15 @@ issue-tracker/
 │       ├── services/         # epicService, userService, mailer (mock SES)
 │       ├── controllers/      # epic / ticket / board / doc / user / webhook / meta
 │       └── routes/           # /api routes
-└── web/                      # Vite + React + TypeScript
-    └── src/
-        ├── pages/            # Board, Backlog, Epics, EpicDetail, TicketDetail, Docs
-        ├── components/       # TicketCard, TicketModal, Nav, MarkdownContent, ...
-        ├── api/              # axios client
-        ├── constants.ts      # statuses + types (frontend copy)
-        └── types.ts          # shared TS types
+├── web/                      # Vite + React + TypeScript
+│   └── src/
+│       ├── pages/            # Board, Backlog, Epics, EpicDetail, TicketDetail, Docs
+│       ├── components/       # TicketCard, TicketModal, Nav, MarkdownContent, ...
+│       ├── api/               # axios client
+│       ├── constants.ts      # statuses + types (frontend copy)
+│       └── types.ts          # shared TS types
+└── lambda/                   # serverless port of the webhook (not run by docker compose)
+    └── src/webhookHandler.ts
 ```
 
 ## What's in it
