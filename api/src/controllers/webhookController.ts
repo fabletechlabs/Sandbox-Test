@@ -5,9 +5,7 @@ import { provisionUser } from '../services/userService';
 /**
  * Inbound webhook. An external system (say an HR tool or identity provider)
  * calls this to tell us to provision a user. We verify a shared secret, create
- * the user, and trigger a welcome email.
- *
- * This is the end-to-end flow the candidate is asked to trace:
+ * the user, and trigger a welcome email:
  *   webhook -> provisionUser -> sendWelcomeEmail (mock SES) -> outbox
  * Each hop logs a line tagged with the same correlation id.
  */

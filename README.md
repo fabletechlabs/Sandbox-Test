@@ -4,9 +4,6 @@ A small issue tracker — epics, tickets, a board, and comments. It is a real,
 working MERN app (MongoDB · Express · React · Node, all in TypeScript) kept
 deliberately small so it is easy to read end to end.
 
-This project is the sandbox for a senior engineering technical exercise. It is a
-normal codebase: run it, read it, and extend it.
-
 ---
 
 ## Run it (one command)

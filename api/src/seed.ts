@@ -142,9 +142,8 @@ async function seed(): Promise<void> {
   await User.insertMany(users);
   await Email.insertMany(emails);
 
-  // Optional bulk tickets, for the "make it slow at scale" data station.
-  // Turn on with SEED_TICKETS=<n> (e.g. SEED_TICKETS=5000). Off by default so
-  // the curated board and the drift breadcrumb stay clean.
+  // Optional bulk tickets for load testing. Turn on with SEED_TICKETS=<n>
+  // (e.g. SEED_TICKETS=5000). Off by default so the curated board stays clean.
   const extraCount = Number(process.env.SEED_TICKETS) || 0;
   if (extraCount > 0) {
     const statuses = ['backlog', 'todo', 'in_progress', 'in_review', 'done'];
