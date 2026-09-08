@@ -1,0 +1,42 @@
+{
+  // Database tools for Cardboard.
+  //
+  // These replace the old in-app "Data tools" page. Run them from the Command
+  // Palette: "Tasks: Run Task", then pick one. They work the same in a
+  // codespace and on a local machine, because both run the app through
+  // docker compose.
+  //
+  // Both tasks shell into the running api container and call `npm run seed`,
+  // which wipes the collections and reinserts the sample data. SEED_TICKETS
+  // adds bulk tickets on top of it (see api/src/seed.ts).
+  //
+  // The api container must be up. If a task reports "no such service", run
+  // `docker compose up -d` first.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cardboard: reset database to sample data",
+      "detail": "Wipe the database and reinsert the small curated sample set.",
+      "type": "shell",
+      "command": "docker compose exec -T api npm run seed",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Cardboard: load large dataset (5,000 tickets)",
+      "detail": "Reseed with 5,000 extra tickets so the board is noticeably slow.",
+      "type": "shell",
+      "command": "docker compose exec -T -e SEED_TICKETS=5000 api npm run seed",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}
