@@ -55,9 +55,6 @@ The chain (one correlation id): `webhookController.handleUserProvisioned` (check
 
 **Strong:** orients outside-in, traces across layers, spots the secret check, names a breakpoint.
 
-<<<<<<< HEAD
-## Station 2 — Data & Mongo
-=======
 > **Follow-up (idempotency):** "Say the HR system times out waiting for our response and
 > retries with the exact same payload. Trace it again — what happens?"
 
@@ -70,8 +67,7 @@ on correlation id.
 **Strong:** finds the duplicate-provisioning gap without being told it's there, connects it
 to the missing unique index.
 
-## Station 2 — Data & Mongo (Backend)
->>>>>>> 2af3c4d (Lambda added)
+## Station 2 — Data & Mongo
 
 > **Integrity:** "Epic progress is wrong — Onboarding revamp shows more done than the
 > board has, and moving/deleting tickets doesn't fix it. What's going on, how would you fix it?"
