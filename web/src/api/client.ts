@@ -169,22 +169,3 @@ export async function deleteDoc(id: string): Promise<{ ok: true }> {
   const { data } = await apiClient.delete<{ ok: true }>(`/docs/${id}`);
   return data;
 }
-
-export interface DevStats {
-  tickets: number;
-}
-
-export async function getDevStats(): Promise<DevStats> {
-  const { data } = await apiClient.get<DevStats>('/dev/stats');
-  return data;
-}
-
-export async function seedLargeDataset(): Promise<{ ok: true; tickets: number }> {
-  const { data } = await apiClient.post<{ ok: true; tickets: number }>('/dev/seed-large');
-  return data;
-}
-
-export async function resetToSampleData(): Promise<{ ok: true; tickets: number }> {
-  const { data } = await apiClient.post<{ ok: true; tickets: number }>('/dev/reset');
-  return data;
-}
