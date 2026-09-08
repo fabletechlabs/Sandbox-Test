@@ -1,0 +1,68 @@
+{
+  "name": "Cardboard",
+
+  // Name the image. Do not leave it out.
+  //
+  // With no image, `gh codespace create` still works, because Codespaces
+  // supplies its own default. A rebuild does not: it falls back to the
+  // devcontainer default, which is Alpine and carries no Docker. Anyone who
+  // selects "Rebuild Container" then gets a container that cannot run the app.
+  //
+  // Use javascript-node, not universal. universal carries a language runtime
+  // for nearly everything, which makes it large, and a first pull of it
+  // measured about ten minutes. javascript-node is a fraction of the size and
+  // is what this project actually needs.
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+
+  // javascript-node has neither Docker nor an SSH server, so both are added
+  // as features. Do not add docker-in-docker to the universal image instead:
+  // that combination fails. universal carries a yarn apt source whose signing
+  // key no longer verifies, the feature runs `apt-get update` while it
+  // installs, and the install stops with "NO_PUBKEY 62D54FD4003F6525".
+  // Container creation then fails, while the codespace still reports
+  // Available on a fallback container, so the breakage is quiet.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
+
+  // Four containers plus Mongo. Two cores make the board timings in the data
+  // station unreliable, which is the one measurement the exercise depends on.
+  "hostRequirements": {
+    "cpus": 4
+  },
+
+  "forwardPorts": [3000, 4000, 27017],
+  "portsAttributes": {
+    "3000": {
+      "label": "Cardboard web",
+      "onAutoForward": "notify"
+    },
+    "4000": {
+      "label": "Cardboard API",
+      "onAutoForward": "silent"
+    },
+    "27017": {
+      "label": "MongoDB",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Get every image with onCreateCommand, not postCreateCommand. A prebuild
+  // runs onCreateCommand and updateContentCommand, but it skips
+  // postCreateCommand. Only onCreateCommand puts the images into the prebuild.
+  //
+  // Both halves are necessary. `build` makes the api, web and simulator
+  // images, but it does not pull mongo, because that service names an image
+  // instead of a build context. Without the pull, mongo is fetched later, when
+  // the containers start.
+  "onCreateCommand": "docker compose pull --ignore-buildable && docker compose build",
+
+  // Start on every start and resume; `up -d` is safe to run again.
+  "postStartCommand": "docker compose up -d",
+
+  // Show that the app is coming up. Without this the workspace looks empty
+  // for about forty seconds while the containers start, which reads as a
+  // broken environment. See the comments in the script.
+  "postAttachCommand": "bash .devcontainer/attach.sh"
+}
