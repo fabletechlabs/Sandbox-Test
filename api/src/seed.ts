@@ -103,8 +103,10 @@ const emails = [
 
 /**
  * Wipe and re-insert all seed data.
+ * @param extraCount - Extra bulk tickets to add (defaults to the SEED_TICKETS
+ *   env var). Used to load a large dataset on demand.
  */
-async function seed(): Promise<void> {
+export async function seed(extraCount = Number(process.env.SEED_TICKETS) || 0): Promise<void> {
   await Promise.all([
     Epic.deleteMany({}),
     Ticket.deleteMany({}),
@@ -142,9 +144,8 @@ async function seed(): Promise<void> {
   await User.insertMany(users);
   await Email.insertMany(emails);
 
-  // Optional bulk tickets for load testing. Turn on with SEED_TICKETS=<n>
-  // (e.g. SEED_TICKETS=5000). Off by default so the curated board stays clean.
-  const extraCount = Number(process.env.SEED_TICKETS) || 0;
+  // Optional bulk tickets for load testing (extraCount, defaulting to the
+  // SEED_TICKETS env var). Off by default so the curated board stays clean.
   if (extraCount > 0) {
     const statuses = ['backlog', 'todo', 'in_progress', 'in_review', 'done'];
     const types = ['story', 'bug', 'task'];

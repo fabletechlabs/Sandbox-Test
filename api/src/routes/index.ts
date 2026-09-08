@@ -40,7 +40,7 @@ router.get('/docs/:slug', ah(docs.getDoc));
 router.patch('/docs/:id', ah(docs.patchDoc));
 router.delete('/docs/:id', ah(docs.deleteDoc));
 
-// Users, outbox, and the inbound webhook (the end-to-end flow to trace)
+// Users, outbox, and the inbound webhook
 router.get('/users', ah(users.listUsers));
 router.get('/outbox', ah(users.listOutbox));
 router.post('/webhooks/user-provisioned', ah(webhooks.handleUserProvisioned));

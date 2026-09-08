@@ -35,11 +35,8 @@ Then open:
 - **Web app** — http://localhost:3000
 - **API** — http://localhost:4000/api/health
 
-The database is seeded automatically on first start. To wipe and reseed:
-
-```bash
-SEED=reset docker compose up
-```
+The database is seeded automatically on first start. See
+[Reset or reseed the database](#reset-or-reseed-the-database) to reload it later.
 
 To run it again from scratch (fresh database):
 
@@ -57,11 +54,39 @@ docker compose down -v && docker compose up
 
 ---
 
+## Reset or reseed the database
+
+There are two VS Code tasks for this. They work the same in a codespace and on
+your own machine.
+
+Open the Command Palette (`F1`, or `Ctrl`/`Cmd` + `Shift` + `P`), run **Tasks:
+Run Task**, then pick one:
+
+| Task                                            | What it does                                                                      |
+| ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| Cardboard: reset database to sample data        | Wipes the database and reinserts the small curated sample set.                    |
+| Cardboard: load large dataset (5,000 tickets)   | Reseeds with 5,000 extra tickets, so the board is noticeably slow.                |
+
+The api container has to be running. If a task reports `no such service`, run
+`docker compose up -d` first and try again.
+
+The equivalents from a terminal, if you would rather not use the palette:
+
+```bash
+docker compose exec -T api npm run seed
+docker compose exec -T -e SEED_TICKETS=5000 api npm run seed
+```
+
+`SEED=reset docker compose up` also reseeds, but only at container start.
+
+---
+
 ## Map of the code
 
 ```
 issue-tracker/
 ├── docker-compose.yml        # mongo + api + web
+├── .vscode/tasks.json        # reset / reseed tasks (Tasks: Run Task)
 ├── api/                      # Express + Mongoose + TypeScript
 │   └── src/
 │       ├── server.ts         # entry: connect, seed, listen
