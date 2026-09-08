@@ -1,0 +1,17 @@
+{
+  "name": "cardboard-webhook-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless port of the user-provisioned webhook, for discussion only — not built or deployed by docker compose",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mongoose": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.3"
+  }
+}

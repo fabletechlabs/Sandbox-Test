@@ -9,7 +9,6 @@ interface ProvisionInput {
 
 /**
  * Provision a new user: create the record, then send them a welcome email.
- * This is the core of the end-to-end flow the exercise traces.
  * @param input - Email, and optionally a name and the source system.
  * @param correlationId - Id threaded through the request for tracing.
  * @return The created user document.

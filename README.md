@@ -4,9 +4,6 @@ A small issue tracker — epics, tickets, a board, and comments. It is a real,
 working MERN app (MongoDB · Express · React · Node, all in TypeScript) kept
 deliberately small so it is easy to read end to end.
 
-This project is the sandbox for a senior engineering technical exercise. It is a
-normal codebase: run it, read it, and extend it.
-
 ---
 
 ## Run it (one command)
@@ -78,13 +75,15 @@ issue-tracker/
 │       ├── services/         # epicService, userService, mailer (mock SES)
 │       ├── controllers/      # epic / ticket / board / doc / user / webhook / meta
 │       └── routes/           # /api routes
-└── web/                      # Vite + React + TypeScript
-    └── src/
-        ├── pages/            # Board, Backlog, Epics, EpicDetail, TicketDetail, Docs
-        ├── components/       # TicketCard, TicketModal, Nav, MarkdownContent, ...
-        ├── api/              # axios client
-        ├── constants.ts      # statuses + types (frontend copy)
-        └── types.ts          # shared TS types
+├── web/                      # Vite + React + TypeScript
+│   └── src/
+│       ├── pages/            # Board, Backlog, Epics, EpicDetail, TicketDetail, Docs
+│       ├── components/       # TicketCard, TicketModal, Nav, MarkdownContent, ...
+│       ├── api/               # axios client
+│       ├── constants.ts      # statuses + types (frontend copy)
+│       └── types.ts          # shared TS types
+└── lambda/                   # serverless port of the webhook (not run by docker compose)
+    └── src/webhookHandler.ts
 ```
 
 ## What's in it
