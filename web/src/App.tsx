@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import Nav from './components/Nav';
 import Backlog from './pages/Backlog';
 import Board from './pages/Board';
+import Dev from './pages/Dev';
 import DocsList from './pages/DocsList';
 import DocView from './pages/DocView';
 import EpicDetail from './pages/EpicDetail';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/tickets/:id" element={<TicketDetail />} />
           <Route path="/docs" element={<DocsList />} />
           <Route path="/docs/:slug" element={<DocView />} />
+          <Route path="/dev" element={<Dev />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

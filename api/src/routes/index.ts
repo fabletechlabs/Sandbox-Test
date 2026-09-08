@@ -5,6 +5,7 @@ import * as tickets from '../controllers/ticketController';
 import * as docs from '../controllers/docController';
 import * as users from '../controllers/userController';
 import * as webhooks from '../controllers/webhookController';
+import * as dev from '../controllers/devController';
 import * as board from '../controllers/boardController';
 import * as meta from '../controllers/metaController';
 
@@ -40,9 +41,14 @@ router.get('/docs/:slug', ah(docs.getDoc));
 router.patch('/docs/:id', ah(docs.patchDoc));
 router.delete('/docs/:id', ah(docs.deleteDoc));
 
-// Users, outbox, and the inbound webhook (the end-to-end flow to trace)
+// Users, outbox, and the inbound webhook
 router.get('/users', ah(users.listUsers));
 router.get('/outbox', ah(users.listOutbox));
 router.post('/webhooks/user-provisioned', ah(webhooks.handleUserProvisioned));
+
+// Dev tools: reseed with sample or large data
+router.get('/dev/stats', ah(dev.stats));
+router.post('/dev/seed-large', ah(dev.seedLarge));
+router.post('/dev/reset', ah(dev.resetData));
 
 export default router;
